@@ -1,37 +1,68 @@
-// User -> FoodItem (Proprietar)
-User.hasMany(FoodItem, {
-    foreignKey: 'id_proprietar',
-    as: 'alimente',
+const { Sequelize } = require('sequelize');
+
+// Conexiunea la baza de date------------------------------------------------
+const sequelize = new Sequelize('AntiFoodWasteApp', 'root', 'parola', {
+  host: 'localhost',
+  dialect: 'mysql',
+  logging: false
 });
 
-// FoodItem -> User (Proprietar)
-FoodItem.belongsTo(User, {
-    foreignKey: 'id_proprietar',
-    as: 'proprietar',
+
+//Importam modelele si le transmitem instanta sequelize--------------------------
+const User = require('./User')(sequelize);
+const FoodItem = require('./FoodItem')(sequelize);
+const FriendGroup = require('./FriendGroup')(sequelize);
+const UserGroup = require('./UserGroup')(sequelize);
+
+
+//Relatiile dintre modele-------------------------------------------------------
+//Relatie de ownership, pot sa creez o lista cu alimente
+//User.id <-> FoodItem.userId
+User.hasMany(FoodItem, { 
+    foreignKey: 'userId', 
+    as: 'alimente' 
 });
 
-// User -> FriendGroup (Creator)
-User.hasMany(FriendGroup, {
-    foreignKey: 'id_proprietar',
-    as: 'grupuriCreate',
+FoodItem.belongsTo(User, { 
+    foreignKey: 'userId', 
+    as: 'proprietar' 
 });
 
-// FriendGroup -> User (Creator)
-FriendGroup.belongsTo(User, {
-    foreignKey: 'id_proprietar',
-    as: 'creator',
+//Relatie de claim pe produs, pentru a tine cont de cine a rezervat produse
+//User.id <-> FoodItem.claim
+User.hasMany(FoodItem, { 
+    foreignKey: 'claim', 
+    as: 'rezervari' 
 });
 
-// User -> FriendGroup (Membru)
-User.belongsToMany(FriendGroup, {
-    through: UserGroup, // Specifică modelul de joncțiune
-    foreignKey: 'id_utilizator',
-    as: 'grupuriMembru',
+FoodItem.belongsTo(User, { 
+    foreignKey: 'claim', 
+    as: 'claimer' 
 });
 
-// FriendGroup -> User (Membru)
-FriendGroup.belongsToMany(User, {
-    through: UserGroup, // Specifică modelul de joncțiune
-    foreignKey: 'id_grup',
-    as: 'membri',
+
+
+//Relatie de definire a grupului de prieteni(Many to Many, corectata prin tabela de jonctiune UserGroup)
+User.belongsToMany(FriendGroup, { 
+    through: UserGroup, 
+    foreignKey: 'userId', 
+    otherKey: 'groupId' 
 });
+
+FriendGroup.belongsToMany(User, { 
+    through: UserGroup, 
+    foreignKey: 'groupId', 
+    otherKey: 'userId' 
+});
+
+// Relatie de ownership pentru grup (Cine a creat grupul)
+User.hasMany(FriendGroup, { foreignKey: 'creatorId' });
+FriendGroup.belongsTo(User, { foreignKey: 'creatorId', as: 'creator' });
+//-----------------------------------------------------------------
+module.exports = {
+    sequelize,
+    User,
+    FoodItem,
+    FriendGroup,
+    UserGroup
+};

@@ -1,36 +1,21 @@
-const {DataTypes} = require('sequelize');
+
+//Acest model defineste grupul în sine (ex: "Familia", "Colegii de camin")
+const{DataTypes} = require("sequelize");
 
 module.exports = (sequelize)=>{
-const FriendGroup = sequelize.define('FriendGroup',{
-
+    const FriendGroup =sequelize.define("FriendGroup",{
     id: {
-        type:DataTypes.UUID,
-        defaultValue:DataTypes.UUIDV4,
-        primaryKey:true,
+        primaryKey: true,
+        autoIncrement:true,
+
+        type: DataTypes.INTEGER,
+      
     },
-    nume_grup:{
-         type:DataTypes.STRING(100),
-         allowNull: false,
-    },
-    id_proprietar:{
-         type:DataTypes.UUID,
-         allowNull: false,
-         
-    },
+    groupName:{
+        type: DataTypes.STRING(150),
+        allowNull:false
+    }},
+    {timestamps:false});
     
-},
-//optiunile pentru sequelize
-{
-  tableName:'FriendGroups',
-  timestamps:true, //adaugam createdAT si updatedAT in mod automat
-});
-
-//returnam modelul definit
-return FriendGroup;
-}
-
-
-
-
-
-
+    return FriendGroup;
+};

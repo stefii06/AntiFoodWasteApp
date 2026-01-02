@@ -1,60 +1,52 @@
-const {DataTypes} = require('sequelize');
+/**
+ * Modelul FoodItem - Gestioneaza inventarul de alimente si starea acestora.
+ * Include logica pentru categorisire, alerte de expirare și sistemul de claim.
+ */
+const {DataTypes} = require("sequelize");
 
-module.exports = (sequelize)=>{
-const FoodItem = sequelize.define('FoodItem',{
+module.exports =(sequelize)=>{
 
-    id: {
-        type:DataTypes.UUID,
-        defaultValue:DataTypes.UUIDV4,
-        primaryKey:true,
-    },
-    nume_produs:{
-         type:DataTypes.STRING(150),
-         allowNull: false,
-    },
-     categorie:{
-         type:DataTypes.STRING(100),
-         allowNull: false,
-    },
-    data_expirarii:{
-         type:DataTypes.DATEONLY,
-         allowNull: false,
-    },
-    cantitate: {
-        type:DataTypes.NUMERIC,
-        allowNull:false, 
-    },
-     descriere:{
-         type:DataTypes.TEXT,
-         allowNull: true,
-    },
-    disponibil:{
-        type: DataTypes.BOOLEAN,
-        allowNull:false,
-    },
-     id_proprietar:{
-        type: DataTypes.UUID,
-        allowNull:false,
-    },
-    data_adaugare:{
-        type: DataTypes.DATE,
-        allowNull:false,
-    },
+const FoodItem = sequelize.define("FoodItem",{
+
+id:{
+    primaryKey: true,
+    autoIncrement: true,
+
+    type: DataTypes.INTEGER
 },
-//optiunile pentru sequelize
-{
-  tableName:'FoodItems',
-  timestamps:true, //pt a avea createdAt si updatedAt( utile pt debugging)
-  createdAt:'data_adaugare' ,//mapam createdAt la campul din tabela
-  updatedAt:'data_actualizare',
-});
+productName:{
+   type: DataTypes.STRING(100),
+   allowNull: false
+},
+//Functionalitate: Lista organizata pe categorii
+category:{
+    type: DataTypes.STRING(100),
+    allowNull: false
+},
+//Functionalitate: Ca utilizator primesc alerte cand un produs se apropie de termenul de valabilitate.
+expiryDate:{
+    type:DataTypes.DATEONLY, //// DATEONLY stochează YYYY-MM-DD, ideal pentru validarea termenului
+    allowNull:false
+},
+//Functionalitate: Marchez produse disponibile
+availability:{
+    type:DataTypes.BOOLEAN,
 
-//returnam modelul definit
-return FoodItem;
+    defaultValue: false // Produsul este privat (în frigider) pana la marcare
+},
+//Functionalitate: Poti face claim pe produs
+claim:{
+    type:DataTypes.INTEGER ,//Stocam ID-ul userului care a rezervat produsul
+    allowNull: true
+},
+//Pentru a implementa relatia de one tomany dintre user si fooditem
+userId:{
+     type: DataTypes.INTEGER,
+     allowNull:false
 }
 
+},
+{timestamps:false});
+return FoodItem;
 
-
-
-
-
+}
