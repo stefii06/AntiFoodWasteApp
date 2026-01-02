@@ -1,22 +1,28 @@
 const express = require('express');
 const cors = require('cors');
 const { sequelize } = require('./models'); // Importa conexiunea din models/index.js
-const foodRoutes = require('./routes/foodRoutes'); // Importa rutele 
+
+//Importul rutelor ce acopera logica aplicatiei---------------------------
+const foodRoutes = require('./routes/foodRoutes'); 
+const userRoutes = require('./routes/userRoutes');  
+const groupRoutes = require('./routes/groupRoutes');
 
 const app = express();
 
-// Middleware-uri necesare
+// Middleware-uri necesare--------------------------------------------------------
 app.use(cors()); // Permite cereri de la alte origini (util pentru frontend)
 app.use(express.json()); // Permite serverului sa proceseze JSON în req.body
 
-// Montarea rutelor
+// Montarea rutelor-------------------------------------------------------------------------
 // Prefixul /food înseamna că toate rutele din foodRoutes vor începe cu /food/...
 app.use('/food', foodRoutes);
+app.use('/user', userRoutes);  
+app.use('/group', groupRoutes);
 
-// Sincronizarea bazei de date și pornirea serverului
+// Sincronizarea bazei de date și pornirea serverului----------------------------------------------------------------
 const PORT = 3001;
 
-sequelize.sync({ force: false }) // force: false asigură că NU sterge datele la fiecare restart
+sequelize.sync({ force: false }) // force: false asigura ca NU sterge datele la fiecare restart
     .then(() => {
         console.log('Tabelele au fost recreat fără coloanele de timp.Baza de date este conectată și sincronizată.');
         app.listen(PORT, () => {
