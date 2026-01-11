@@ -1,0 +1,37 @@
+.auth {
+  padding: 24px;
+  max-width: 420px;
+  margin: 0 auto;
+}
+
+.authCard {
+  border: 1px solid #333;
+  border-radius: 12px;
+  padding: 16px;
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.authRow {
+  margin-bottom: 10px;
+}
+
+.authInput {
+  width: 100%;
+  padding: 8px;
+}
+
+.authBtn {
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: 1px solid #333;
+  background: #1b1b1b;
+  color: #eee;
+  cursor: pointer;
+}
+
+.authBtn:hover {
+  background: #242424;
+}
+
+.authErr { color: crimson; }
+.authOk { color: lightgreen; }

@@ -1,12 +1,22 @@
-const { Sequelize } = require('sequelize');
+const { Sequelize } = require("sequelize");
 
-// Conexiunea la baza de date------------------------------------------------
-const sequelize = new Sequelize('AntiFoodWasteApp', 'root', 'parola', {
-  host: 'localhost',
-  dialect: 'mysql',
-  logging: false
-});
+// Conexiunea la baza de date
+let sequelize;
 
+if (process.env.DATABASE_URL) {
+  // Railway Postgres (deploy)
+  sequelize = new Sequelize(process.env.DATABASE_URL, {
+    dialect: "postgres",
+    logging: false,
+  });
+} else {
+  // Local MySQL (XAMPP)
+  sequelize = new Sequelize("AntiFoodWasteApp", "root", "parola", {
+    host: "localhost",
+    dialect: "mysql",
+    logging: false,
+  });
+}
 
 //Importam modelele si le transmitem instanta sequelize--------------------------
 const User = require('./User')(sequelize);

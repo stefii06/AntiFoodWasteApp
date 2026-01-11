@@ -20,7 +20,7 @@ app.use('/user', userRoutes);
 app.use('/group', groupRoutes);
 
 // Sincronizarea bazei de date și pornirea serverului----------------------------------------------------------------
-const PORT = 3001;
+const PORT = process.env.PORT || 3001;
 
 sequelize.sync({ force: false }) // force: false asigura ca NU sterge datele la fiecare restart
     .then(() => {

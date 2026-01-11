@@ -1,0 +1,61 @@
+.groups {
+  padding: 24px;
+  max-width: 1100px;
+  margin: 0 auto;
+}
+
+.groupsGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+}
+
+.card {
+  border: 1px solid #333;
+  border-radius: 12px;
+  padding: 16px;
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.formRow {
+  margin-bottom: 10px;
+}
+
+.input {
+  width: 100%;
+  padding: 8px;
+}
+
+.btn {
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: 1px solid #333;
+  background: #1b1b1b;
+  color: #eee;
+  cursor: pointer;
+}
+
+.btn:hover {
+  background: #242424;
+}
+
+.error {
+  color: crimson;
+}
+
+.itemRow {
+  border: 1px solid #2a2a2a;
+  border-radius: 12px;
+  padding: 12px;
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.itemTitle {
+  font-weight: 700;
+}
+
+.meta {
+  opacity: 0.85;
+}
