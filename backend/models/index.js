@@ -8,16 +8,16 @@ if (process.env.DATABASE_URL) {
   sequelize = new Sequelize(process.env.DATABASE_URL, {
     dialect: "postgres",
     logging: false,
+    dialectOptions: {
+      ssl: { require: true, rejectUnauthorized: false }
+    }
   });
 } else {
-  // Local MySQL (XAMPP)
+  // Local MySQL (XAMPP) - FARA SSL
   sequelize = new Sequelize("AntiFoodWasteApp", "root", "parola", {
     host: "localhost",
     dialect: "mysql",
-    logging: false,
-    dialectOptions: {
-    ssl: { require: true, rejectUnauthorized: false }
-  }
+    logging: false
   });
 }
 
