@@ -16,11 +16,17 @@ app.use(express.json()); // Permite serverului sa proceseze JSON în req.body
 
 // Montarea rutelor-------------------------------------------------------------------------
 // Prefixul /food înseamna că toate rutele din foodRoutes vor începe cu /food/...
+console.log("Mounting /food routes...");
 app.use('/food', foodRoutes);
-app.use('/user', userRoutes);  
+
+console.log("Mounting /user routes...");
+app.use('/user', userRoutes);
+
+console.log("Mounting /group routes...");
 app.use('/group', groupRoutes);
-app.use("/external", externalRoutes);
-console.log(" mounted /external");
+
+console.log("Mounting /external routes...");
+app.use('/external', externalRoutes);
 
 
 // Sincronizarea bazei de date și pornirea serverului----------------------------------------------------------------
