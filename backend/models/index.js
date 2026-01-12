@@ -15,6 +15,9 @@ if (process.env.DATABASE_URL) {
     host: "localhost",
     dialect: "mysql",
     logging: false,
+    dialectOptions: {
+    ssl: { require: true, rejectUnauthorized: false }
+  }
   });
 }
 
