@@ -6,6 +6,7 @@ const { sequelize } = require('./models'); // Importa conexiunea din models/inde
 const foodRoutes = require('./routes/foodRoutes'); 
 const userRoutes = require('./routes/userRoutes');  
 const groupRoutes = require('./routes/groupRoutes');
+const externalRoutes = require('./routes/externalRoutes');
 
 const app = express();
 
@@ -18,6 +19,9 @@ app.use(express.json()); // Permite serverului sa proceseze JSON în req.body
 app.use('/food', foodRoutes);
 app.use('/user', userRoutes);  
 app.use('/group', groupRoutes);
+app.use("/external", externalRoutes);
+console.log(" mounted /external");
+
 
 // Sincronizarea bazei de date și pornirea serverului----------------------------------------------------------------
 const PORT = process.env.PORT || 3001;
