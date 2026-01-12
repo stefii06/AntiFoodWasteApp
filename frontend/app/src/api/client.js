@@ -29,3 +29,7 @@ export function put(path, body) {
 export function del(path) {
   return fetch(`${API_BASE}${path}`, { method: "DELETE" }).then(parse);
 }
+
+export function getRecipesByIngredient(ingredient) {
+  return get(`/external/recipes?ingredient=${encodeURIComponent(ingredient)}`);
+}

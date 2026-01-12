@@ -6,6 +6,8 @@ import Register from "./pages/Register";
 import Dashboard from "./pages/Dashboard";
 import Groups from "./pages/Groups";
 import Profile from "./pages/Profile";
+import Recipes from "./pages/Recipes";
+
 
 
 function RequireAuth({ children }) {
@@ -52,6 +54,16 @@ export default function App() {
     </RequireAuth>
   }
 />
+
+<Route
+  path="/recipes"
+  element={
+    <RequireAuth>
+      <Recipes />
+    </RequireAuth>
+  }
+/>
+
 
 
           <Route path="*" element={<div style={{ padding: 24 }}>404</div>} />

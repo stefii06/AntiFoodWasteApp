@@ -40,6 +40,12 @@ export default function NavBar() {
       <NavLink to="/profile" style={linkStyle}>
   Profile
 </NavLink>
+<NavLink to="/recipes" style={linkStyle}>
+  Recipes
+</NavLink>
+
+
+
 
 
       <div style={{ flex: 1 }} />
