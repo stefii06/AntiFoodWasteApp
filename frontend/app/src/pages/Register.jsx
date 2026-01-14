@@ -1,3 +1,4 @@
+// frontend/app/src/pages/Register.jsx
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import * as api from "../api/client";
@@ -20,7 +21,12 @@ export default function Register() {
     setMsg("");
 
     try {
-      const res = await api.post("/user/register", { username, email, password, tag });
+      const res = await api.post("/user/register", {
+        username,
+        email,
+        password,
+        tag,
+      });
       setMsg(`Cont creat cu succes! (id=${res.id})`);
       setTimeout(() => navigate("/login"), 600);
     } catch (e) {
@@ -30,28 +36,49 @@ export default function Register() {
 
   return (
     <div className="auth">
-      <h2>Register</h2>
+      <div className="authCard authCard-large">
+        <h2 className="authTitle">Register</h2>
 
-      <div className="authCard">
         <form onSubmit={onSubmit}>
           <div className="authRow">
             <label>Username</label>
-            <input className="authInput" value={username} onChange={(e) => setUsername(e.target.value)} />
+            <input
+              className="authInput"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              placeholder="ex: olga"
+            />
           </div>
 
           <div className="authRow">
             <label>Email</label>
-            <input className="authInput" value={email} onChange={(e) => setEmail(e.target.value)} />
+            <input
+              className="authInput"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="ex: ceva@mail.com"
+            />
           </div>
 
           <div className="authRow">
             <label>Password</label>
-            <input className="authInput" type="password" value={password} onChange={(e) => setPassword(e.target.value)} />
+            <input
+              className="authInput"
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="Alege o parolă"
+            />
           </div>
 
           <div className="authRow">
             <label>Preferințe (tag)</label>
-            <input className="authInput" value={tag} onChange={(e) => setTag(e.target.value)} />
+            <input
+              className="authInput"
+              value={tag}
+              onChange={(e) => setTag(e.target.value)}
+              placeholder="ex: Vegetarian, iubitor de zacuscă"
+            />
           </div>
 
           <button className="authBtn">Create account</button>
@@ -60,7 +87,7 @@ export default function Register() {
         {msg && <p className="authOk">{msg}</p>}
         {err && <p className="authErr">{err}</p>}
 
-        <p style={{ marginTop: 10 }}>
+        <p className="authFooterText">
           Ai cont deja? <Link to="/login">Login</Link>
         </p>
       </div>

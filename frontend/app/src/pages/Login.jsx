@@ -1,12 +1,14 @@
+// frontend/app/src/pages/Login.jsx
 import { useState } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import * as api from "../api/client";
+import "./Auth.css";
 
 export default function Login() {
   const navigate = useNavigate();
 
-  const [email, setEmail] = useState("eli@test.com");
-  const [password, setPassword] = useState("123");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [err, setErr] = useState("");
 
   async function onSubmit(e) {
@@ -23,37 +25,41 @@ export default function Login() {
   }
 
   return (
-    <div style={{ padding: 24, maxWidth: 420, margin: "0 auto" }}>
-      <h2>Login</h2>
+    <div className="auth">
+      <div className="authCard authCard-large">
+        <h2 className="authTitle">Login</h2>
 
-      <form onSubmit={onSubmit}>
-        <div style={{ marginBottom: 10 }}>
-          <label>Email</label>
-          <input
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            style={{ width: "100%", padding: 8 }}
-          />
-        </div>
+        <form onSubmit={onSubmit}>
+          <div className="authRow">
+            <label>Email</label>
+            <input
+              className="authInput"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="ex: ceva@mail.com"
+            />
+          </div>
 
-        <div style={{ marginBottom: 10 }}>
-          <label>Password</label>
-          <input
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            style={{ width: "100%", padding: 8 }}
-          />
-        </div>
+          <div className="authRow">
+            <label>Password</label>
+            <input
+              className="authInput"
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="Introdu parola"
+            />
+          </div>
 
-        <button style={{ padding: "8px 12px" }}>Login</button>
-      </form>
+          <button className="authBtn">Login</button>
+        </form>
 
-      {err && <p style={{ color: "crimson" }}>{err}</p>}
+        {err && <p className="authErr">{err}</p>}
 
-      <p style={{ marginTop: 10 }}>
-        Nu ai cont? <Link to="/register">Register</Link>
-      </p>
+        <p className="authFooterText">
+          Nu ai cont? <Link to="/register">Register</Link>
+        </p>
+      </div>
     </div>
   );
 }

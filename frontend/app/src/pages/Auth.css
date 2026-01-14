@@ -1,37 +1,130 @@
+/* ===== Container general pentru paginile de auth ===== */
+
 .auth {
-  padding: 24px;
-  max-width: 420px;
-  margin: 0 auto;
+  min-height: calc(100vh - 64px); /* scădem navbar-ul */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 48px 16px;
+  background: #020617;
 }
+
+/* ===== Card ===== */
 
 .authCard {
-  border: 1px solid #333;
-  border-radius: 12px;
-  padding: 16px;
-  background: rgba(255, 255, 255, 0.02);
+  width: 100%;
+  max-width: 420px;
+  background: #020617;
+  border-radius: 22px;
+  padding: 24px 24px 22px;
+  border: 1px solid #111827;
+  box-shadow: 0 26px 70px rgba(0, 0, 0, 0.7);
+  text-align: left;
 }
 
+/* variantă puțin mai mare / aerisită  */
+.authCard-large {
+  max-width: 480px;
+  padding: 28px 28px 24px;
+}
+
+.authTitle {
+  margin: 0 0 18px;
+  font-size: 26px;
+}
+
+/* ===== Form rows ===== */
+
 .authRow {
-  margin-bottom: 10px;
+  margin-bottom: 14px;
+}
+
+.authRow label {
+  display: block;
+  margin-bottom: 4px;
+  font-size: 13px;
+  opacity: 0.9;
 }
 
 .authInput {
   width: 100%;
-  padding: 8px;
+  padding: 9px 11px;
+  border-radius: 12px;
+  border: 1px solid #1f2933;
+  background: #020617;
+  color: #e5e7eb;
+  font-size: 14px;
 }
 
+.authInput::placeholder {
+  color: #6b7280;
+}
+
+.authInput:focus {
+  outline: none;
+  border-color: #4f46e5;
+  box-shadow: 0 0 0 1px rgba(79, 70, 229, 0.55);
+}
+
+/* ===== Buttons ===== */
+
 .authBtn {
-  padding: 8px 12px;
-  border-radius: 8px;
-  border: 1px solid #333;
-  background: #1b1b1b;
-  color: #eee;
+  width: 100%;
+  padding: 10px 0;
+  margin-top: 6px;
+  border-radius: 999px;
+  border: 1px solid #2563eb;
+  background: #2563eb;
+  color: #e5e7eb;
   cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  transition: background 0.15s ease, border-color 0.15s ease,
+    box-shadow 0.15s ease, transform 0.05s ease;
 }
 
 .authBtn:hover {
-  background: #242424;
+  background: #1d4ed8;
+  border-color: #1d4ed8;
+  box-shadow: 0 18px 40px rgba(37, 99, 235, 0.4);
+  transform: translateY(-1px);
 }
 
-.authErr { color: crimson; }
-.authOk { color: lightgreen; }
+/* ===== Mesaje ===== */
+
+.authOk {
+  margin-top: 10px;
+  font-size: 13px;
+  color: #86efac;
+}
+
+.authErr {
+  margin-top: 10px;
+  font-size: 13px;
+  color: #fca5a5;
+}
+
+/* ===== Footer text (link login/register) ===== */
+
+.authFooterText {
+  margin-top: 16px;
+  font-size: 13px;
+  opacity: 0.9;
+}
+
+.authFooterText a {
+  color: #60a5fa;
+}
+.authFooterText a:hover {
+  text-decoration: underline;
+}
+
+/* ===== Responsive mic ===== */
+
+@media (max-width: 480px) {
+  .authCard,
+  .authCard-large {
+    padding: 22px 18px 18px;
+    border-radius: 18px;
+  }
+}
