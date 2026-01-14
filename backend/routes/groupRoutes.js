@@ -9,8 +9,13 @@ router.post('/create', groupController.createGroup);
 // Adaugare membru in grup (pentru a invita prietenii)
 router.post('/addUser', groupController.addUserToGroup);
 
+
+//  toate grupurile in care este userul + membrii lor
+router.get('/user/:userId/groups', groupController.getUserGroups)
+
 // Vezi toate alimentele disponibile din grupul in care apartine userul
 router.get('/:groupId/available-food', groupController.getGroupFood);
+
 
 
 module.exports = router;

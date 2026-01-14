@@ -3,6 +3,9 @@ const express = require('express');
 const router = express.Router();
 const userController = require('../controllers/userController');
 
+// lista tuturor userilor (pentru dropdown)
+router.get('/', userController.listUsers);
+
 // Ruta pentru inregistrare
 router.post('/register', userController.register);
 

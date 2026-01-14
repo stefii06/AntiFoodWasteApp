@@ -40,3 +40,16 @@ exports.getProfile = async (req, res) => {
         res.status(500).json({ error: error.message });
     }
 };
+
+// lista tuturor userilor (fără parola)
+exports.listUsers = async (req, res) => {
+  try {
+    const users = await User.findAll({
+      attributes: ["id", "username", "email", "tag"],
+    });
+    res.json(users);
+  } catch (error) {
+    console.error("listUsers error:", error);
+    res.status(500).json({ error: error.message });
+  }
+};

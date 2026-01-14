@@ -57,3 +57,38 @@ exports.getGroupFood = async (req, res) => {
         res.status(500).json({ error: error.message });
         console.log("Eroare detaliata Sequelize:", err.parent); // Asta ne va spune exact ce SQL a crapat
     }};
+
+    exports.getUserGroups = async (req, res) => {
+  try {
+    const { userId } = req.params;
+
+    // mai întâi aflăm în ce grupuri e userul
+    const memberships = await UserGroup.findAll({
+      where: { userId },
+      attributes: ["groupId"],
+    });
+
+    const groupIds = memberships.map((m) => m.groupId);
+
+    if (!groupIds.length) {
+      return res.json([]); // userul nu e în niciun grup
+    }
+
+    // luăm grupurile + toți membrii lor (User)
+    const groups = await FriendGroup.findAll({
+      where: { id: groupIds },
+      include: [
+        {
+          model: User,
+          attributes: ["id", "username", "tag"],
+          through: { attributes: [] }, // nu vrem coloanele intermediare
+        },
+      ],
+    });
+
+    res.json(groups);
+  } catch (err) {
+    console.error("getUserGroups error:", err);
+    res.status(500).json({ error: err.message });
+  }
+};
