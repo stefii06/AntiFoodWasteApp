@@ -33,3 +33,7 @@ export function del(path) {
 export function getRecipesByIngredient(ingredient) {
   return get(`/external/recipes?ingredient=${encodeURIComponent(ingredient)}`);
 }
+
+export function getShareData(foodId) {
+  return get(`/external/share/${foodId}`);
+}

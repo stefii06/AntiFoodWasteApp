@@ -11,7 +11,7 @@ import Recipes from "./pages/Recipes";
 
 
 function RequireAuth({ children }) {
-  const user = localStorage.getItem("user");
+ const user = JSON.parse(localStorage.getItem("user") || "null");
   if (!user) return <Navigate to="/login" replace />;
   return children;
 }
