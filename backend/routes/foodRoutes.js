@@ -25,6 +25,11 @@ router.delete('/:id/deleteItem', foodController.deleteFoodItem);
 router.put('/:id/makeAvailableItem', foodController.makeAvailableFoodItem);
 //------------------------------------------------------------
 
+
+ 
+// 4'. Cerere PUT pentru toggle disponibil / indisponibil
+router.put("/:id/toggleAvailability", foodController.toggleFoodAvailability);
+
 //5.Cerere PUT pentru a face claim pe un aliment(functionalitate ceruta)
 router.put('/:id/claimItem', foodController.claimFoodItem);
 

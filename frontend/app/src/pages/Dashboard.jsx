@@ -5,7 +5,6 @@ import { getShareData } from "../api/client";
 import "./Dashboard.css";
 
 export default function Dashboard() {
-  // ----- Auth (din localStorage)
   const user = useMemo(() => {
     try {
       return JSON.parse(localStorage.getItem("user") || "null");
@@ -16,20 +15,18 @@ export default function Dashboard() {
 
   const userId = user?.id;
 
-  // ----- Data
   const [items, setItems] = useState([]);
   const [alerts, setAlerts] = useState([]);
-
-  // UI state
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState("");
 
-  // ----- Add form
   const [productName, setProductName] = useState("");
   const [category, setCategory] = useState("Lactate");
   const [expiryDate, setExpiryDate] = useState("");
 
-  // ---------------- Helpers
+  // 🔔 popup scurt pentru alerta de expirare
+  const [expiryPopup, setExpiryPopup] = useState("");
+
   async function loadAll() {
     if (!userId) return;
     setErr("");
@@ -49,16 +46,21 @@ export default function Dashboard() {
 
   useEffect(() => {
     loadAll();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [userId]);
 
-  // ---------------- Actions: CRUD
+  // închidem automat popup-ul după câteva secunde
+  useEffect(() => {
+    if (!expiryPopup) return;
+    const t = setTimeout(() => setExpiryPopup(""), 4000);
+    return () => clearTimeout(t);
+  }, [expiryPopup]);
+
   async function onAdd(e) {
     e.preventDefault();
     setErr("");
 
     if (!productName.trim() || !expiryDate) {
-      setErr("Completeaza Nume produs si Data expirare.");
+      setErr("Completează Nume produs și Data expirare.");
       return;
     }
 
@@ -69,6 +71,29 @@ export default function Dashboard() {
         expiryDate,
         userId,
       });
+
+      // 🔔 verificăm dacă intră în intervalul de alertă (azi–7 zile)
+      try {
+        const today = new Date();
+        const todayMidnight = new Date(
+          today.getFullYear(),
+          today.getMonth(),
+          today.getDate()
+        );
+        const nextWeek = new Date(todayMidnight);
+        nextWeek.setDate(nextWeek.getDate() + 7);
+
+        const exp = new Date(expiryDate); // YYYY-MM-DD
+
+        if (exp >= todayMidnight && exp <= nextWeek) {
+          setExpiryPopup(
+            `Atenție: produsul „${productName.trim()}” expiră curând (${expiryDate}).`
+          );
+        }
+      } catch {
+        // ignore doar la popup
+      }
+
       setProductName("");
       setExpiryDate("");
       await loadAll();
@@ -87,40 +112,82 @@ export default function Dashboard() {
     }
   }
 
-  async function onMakeAvailable(id) {
+  // 🔁 toggle disponibil / indisponibil
+  async function onToggleAvailability(id) {
     setErr("");
     try {
-      await api.put(`/food/${id}/makeAvailableItem`);
+      await api.put(`/food/${id}/toggleAvailability`);
       await loadAll();
     } catch (e) {
       setErr(e.message);
     }
   }
 
-  // ---------------- Share FB / IG
+  /**
+   * SHARE PE FACEBOOK
+   * - dacă browserul suportă Web Share API -> navigator.share(...)
+   * - altfel fallback la Facebook Share Dialog (sharer.php)
+   */
   async function shareOnFacebook(foodId) {
     try {
       const data = await getShareData(foodId);
-      window.open(data.fbShareUrl, "_blank", "noopener,noreferrer");
+
+      const shareUrl = data.fbShareUrl || window.location.origin;
+      const shareText = data.message || "Vezi ce aliment pot să ofer:";
+
+      if (navigator.share) {
+        await navigator.share({
+          title: "Anti Food Waste",
+          text: shareText,
+          url: shareUrl,
+        });
+      } else {
+        const url = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(
+          shareUrl
+        )}&quote=${encodeURIComponent(shareText)}`;
+        window.open(url, "_blank", "noopener,noreferrer");
+      }
     } catch (e) {
       console.error(e);
-      alert("Nu am putut pregăti share-ul pe Facebook");
+      alert("Nu am putut pregăti share-ul pe Facebook.");
     }
   }
 
+  /**
+   * SHARE PE INSTAGRAM
+   * - dacă există Web Share API -> navigator.share(...)
+   * - altfel: copiem textul în clipboard + deschidem instagramUrl
+   */
   async function shareOnInstagram(foodId) {
     try {
       const data = await getShareData(foodId);
-      await navigator.clipboard.writeText(data.message);
-      alert("Textul a fost copiat! Lipește-l în postarea de pe Instagram.");
-      window.open(data.instagramUrl, "_blank", "noopener,noreferrer");
+
+      const shareUrl = data.instagramUrl || window.location.origin;
+      const shareText =
+        data.message || "Vezi ce aliment pot să ofer în Anti Food Waste:";
+
+      if (navigator.share) {
+        await navigator.share({
+          title: "Anti Food Waste",
+          text: shareText,
+          url: shareUrl,
+        });
+      } else {
+        await navigator.clipboard.writeText(shareText);
+        alert(
+          "Text copiat în clipboard! Lipește-l în postarea sau story-ul de pe Instagram."
+        );
+
+        if (data.instagramUrl) {
+          window.open(data.instagramUrl, "_blank", "noopener,noreferrer");
+        }
+      }
     } catch (e) {
       console.error(e);
-      alert("Nu am putut pregăti share-ul pentru Instagram");
+      alert("Nu am putut pregăti share-ul pentru Instagram.");
     }
   }
 
-  // ---------------- Derived: grupare pe categorii
   const itemsByCategory = items.reduce((acc, it) => {
     const cat = it.category || "Altele";
     if (!acc[cat]) acc[cat] = [];
@@ -128,7 +195,6 @@ export default function Dashboard() {
     return acc;
   }, {});
 
-  // ---------------- UI
   return (
     <div className="dashboard-page">
       <div className="dashboard-shell">
@@ -137,17 +203,29 @@ export default function Dashboard() {
             <div>
               <h2>Dashboard</h2>
               <p className="dashboard-subtitle">
-                Logat ca <b>{user?.username}</b> (id={userId})
+                Logat ca <b>{user?.username}</b>
               </p>
             </div>
           </header>
 
+          {/* 🔔 Popup vizual pentru alimente aproape de expirare */}
+          {expiryPopup && (
+            <div className="expiry-toast">
+              <span>{expiryPopup}</span>
+              <button
+                type="button"
+                className="expiry-toast-close"
+                onClick={() => setExpiryPopup("")}
+              >
+                ✕
+              </button>
+            </div>
+          )}
+
           {err && <p className="error">{err}</p>}
           {loading && <p className="infoText">Se încarcă...</p>}
 
-          {/* TOP GRID: Add + Alerts */}
           <div className="dashboard-grid">
-            {/* Add */}
             <div className="card">
               <h3>Adaugă aliment</h3>
 
@@ -168,7 +246,6 @@ export default function Dashboard() {
                     className="input"
                     value={category}
                     onChange={(e) => setCategory(e.target.value)}
-                    placeholder="ex: Lactate"
                   />
                 </div>
 
@@ -186,13 +263,12 @@ export default function Dashboard() {
               </form>
             </div>
 
-            {/* Alerts */}
             <div className="card alertsCard">
               <div className="alertsHeader">
                 <div>
                   <h3>Produse aproape de expirare</h3>
                   <p className="alertsSubtitle">
-                    Ai grijă să le folosești sau să le oferi mai departe.
+                    Folosește-le sau dă-le mai departe
                   </p>
                 </div>
                 <button className="btn ghost" type="button" onClick={loadAll}>
@@ -201,9 +277,7 @@ export default function Dashboard() {
               </div>
 
               {alerts.length === 0 ? (
-                <p className="infoText">
-                  Nu ai alerte momentan. Frigiderul tău arată bine! 🎉
-                </p>
+                <p className="infoText">Nicio alertă momentan 🎉</p>
               ) : (
                 <ul className="alertsList">
                   {alerts.map((a) => (
@@ -221,14 +295,11 @@ export default function Dashboard() {
             </div>
           </div>
 
-          {/* ITEMS LIST */}
           <div className="card itemsWrap">
             <h3>Alimentele mele</h3>
 
             {items.length === 0 ? (
-              <p className="infoText">
-                Nu ai alimente înregistrate. Începe prin a adăuga câteva mai sus.
-              </p>
+              <p className="infoText">Nu ai produse înregistrate.</p>
             ) : (
               <div className="categoriesWrap">
                 {Object.entries(itemsByCategory).map(([cat, list]) => (
@@ -242,17 +313,25 @@ export default function Dashboard() {
 
                     <div className="categoryItems">
                       {list.map((it) => {
-                        const availabilityLabel = it.availability
-                          ? "Available"
-                          : "Not available";
-                        const availabilityClass = it.availability
-                          ? "is-available"
-                          : "is-not-available";
+                        let availabilityLabel = "Indisponibil";
+                        let availabilityClass = "is-private";
+
+                        if (it.availability === true && it.claim == null) {
+                          availabilityLabel = "Disponibil";
+                          availabilityClass = "is-available";
+                        } else if (it.claim != null) {
+                          availabilityLabel = "Rezervat";
+                          availabilityClass = "is-reserved";
+                        }
+
+                        const canToggle = it.claim == null;
 
                         return (
                           <div className="itemRow" key={it.id}>
                             <div>
-                              <div className="itemTitle">{it.productName}</div>
+                              <div className="itemTitle">
+                                {it.productName}
+                              </div>
                               <div className="itemMetaLine">
                                 <span className="itemExpiry">
                                   Expiră la <b>{it.expiryDate}</b>
@@ -273,16 +352,16 @@ export default function Dashboard() {
                                 Delete
                               </button>
 
-                              {!it.availability && (
+                              {canToggle && it.availability === false && (
                                 <button
                                   className="btn subtle"
-                                  onClick={() => onMakeAvailable(it.id)}
+                                  onClick={() => onToggleAvailability(it.id)}
                                 >
-                                  Make available
+                                  Fă disponibil
                                 </button>
                               )}
 
-                              {it.availability && (
+                              {canToggle && it.availability === true && (
                                 <>
                                   <button
                                     className="btn subtle"
@@ -295,6 +374,12 @@ export default function Dashboard() {
                                     onClick={() => shareOnInstagram(it.id)}
                                   >
                                     Share pe Instagram
+                                  </button>
+                                  <button
+                                    className="btn subtle"
+                                    onClick={() => onToggleAvailability(it.id)}
+                                  >
+                                    Marchează privat
                                   </button>
                                 </>
                               )}

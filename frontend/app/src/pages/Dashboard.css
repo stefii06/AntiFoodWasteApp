@@ -102,8 +102,11 @@
   color: #e5e7eb;
   cursor: pointer;
   font-size: 13px;
-  transition: background 0.15s ease, border-color 0.15s ease,
-    transform 0.05s ease, box-shadow 0.15s ease;
+  transition:
+    background 0.15s ease,
+    border-color 0.15s ease,
+    transform 0.05s ease,
+    box-shadow 0.15s ease;
 }
 
 .btn:hover {
@@ -290,25 +293,36 @@
   opacity: 0.9;
 }
 
-/* Availability pill – mai subtil */
+/* ===== Availability pill ===== */
 
 .availabilityPill {
-  padding: 3px 10px;
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 10px;
   border-radius: 999px;
   font-size: 12px;
-  border: 1px solid transparent;
+  font-weight: 500;
 }
 
-.availabilityPill.is-available {
-  background: rgba(34, 197, 94, 0.12);
-  border-color: rgba(34, 197, 94, 0.45);
-  color: #6ee7b7;
-}
-
-.availabilityPill.is-not-available {
-  background: rgba(239, 68, 68, 0.12);
-  border-color: rgba(239, 68, 68, 0.5);
+/* Indisponibil (Privat) – roșu ușor */
+.availabilityPill.is-private {
+  background: rgba(248, 113, 113, 0.15);
   color: #fecaca;
+  border: 1px solid rgba(248, 113, 113, 0.6);
+}
+
+/* Disponibil – verde */
+.availabilityPill.is-available {
+  background: rgba(34, 197, 94, 0.18);
+  color: #bbf7d0;
+  border: 1px solid rgba(34, 197, 94, 0.7);
+}
+
+/* Rezervat – galben/portocaliu */
+.availabilityPill.is-reserved {
+  background: rgba(250, 204, 21, 0.16);
+  color: #facc15;
+  border: 1px solid rgba(250, 204, 21, 0.7);
 }
 
 /* Butoane la dreapta */
@@ -318,6 +332,39 @@
   flex-wrap: wrap;
   gap: 8px;
   justify-content: flex-end;
+}
+
+/* ===== Toast expirare ===== */
+
+.expiry-toast {
+  position: fixed;
+  right: 24px;
+  bottom: 24px;
+  max-width: 360px;
+  background: #f97316; /* portocaliu de avertizare */
+  color: #111827;
+  padding: 12px 16px;
+  border-radius: 12px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  z-index: 9999;
+  font-size: 0.95rem;
+}
+
+.expiry-toast span {
+  flex: 1;
+}
+
+.expiry-toast-close {
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  font-size: 14px;
+  line-height: 1;
+  padding: 0 4px;
+  color: inherit;
 }
 
 /* ===== Responsive ===== */

@@ -98,13 +98,13 @@ export default function NavBar() {
           Dashboard
         </NavLink>
         <NavLink to="/groups" style={linkStyle}>
-          Groups
+          Grupuri
         </NavLink>
         <NavLink to="/profile" style={linkStyle}>
-          Profile
+          Profil
         </NavLink>
         <NavLink to="/recipes" style={linkStyle}>
-          Recipes
+          Retete
         </NavLink>
 
         <div style={{ flex: 1 }} />
