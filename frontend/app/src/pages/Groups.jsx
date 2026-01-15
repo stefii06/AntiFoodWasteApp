@@ -1,12 +1,8 @@
-// frontend/app/src/pages/Groups.jsx
 import { useEffect, useMemo, useState } from "react";
 import * as api from "../api/client";
-import { getShareData } from "../api/client";
-
 import "./Groups.css";
 
 export default function Groups() {
-  // ----- Auth
   const user = useMemo(() => {
     try {
       return JSON.parse(localStorage.getItem("user") || "null");
@@ -16,67 +12,57 @@ export default function Groups() {
   }, []);
   const userId = user?.id;
 
-  // ----- State
   const [err, setErr] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const [groupName, setGroupName] = useState("Camin Camera 302");
+  const [groupName, setGroupName] = useState("");
   const [createdGroupId, setCreatedGroupId] = useState(null);
 
-  const [groupId, setGroupId] = useState(""); // grup selectat
-  const [groups, setGroups] = useState([]); // grupurile mele
+  const [groupId, setGroupId] = useState("");
+  const [groups, setGroups] = useState([]);
   const [selectedGroup, setSelectedGroup] = useState(null);
-  const [users, setUsers] = useState([]); // toti userii
 
-  const [addUserId, setAddUserId] = useState(""); // user selectat pt add
-  const [available, setAvailable] = useState([]); // alimente disponibile in grup
+  const [users, setUsers] = useState([]);
+  const [addUserId, setAddUserId] = useState("");
 
-  // salvăm groupId în localStorage ca să rămână selectat
+  const [available, setAvailable] = useState([]);
+
   useEffect(() => {
-    if (groupId) {
-      localStorage.setItem("groupId", groupId);
-    }
+    if (groupId) localStorage.setItem("groupId", groupId);
   }, [groupId]);
 
-  // load initial: grupuri + useri
   useEffect(() => {
     if (!userId) return;
-
-    const savedGroupId = localStorage.getItem("groupId") || "";
-    loadGroups(savedGroupId);
+    const saved = localStorage.getItem("groupId") || "";
+    loadGroups(saved);
     loadUsers();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [userId]);
 
-  // ----- API helpers
-  async function loadGroups(savedGroupId) {
+  async function loadGroups(savedId) {
     setErr("");
     setLoading(true);
     try {
       const myGroups = await api.get(`/group/user/${userId}/groups`);
       setGroups(myGroups);
 
-      if (myGroups.length > 0) {
-        let activeId;
-
-        // dacă avem deja un grup salvat și există în listă, îl folosim
-        if (
-          savedGroupId &&
-          myGroups.some((g) => String(g.id) === String(savedGroupId))
-        ) {
-          activeId = String(savedGroupId);
-        } else {
-          // altfel luăm primul grup din listă
-          activeId = String(myGroups[0].id);
-        }
-
-        setGroupId(activeId);
-        const activeGroup = myGroups.find((g) => String(g.id) === activeId);
-        setSelectedGroup(activeGroup || null);
-      } else {
+      if (myGroups.length === 0) {
         setGroupId("");
         setSelectedGroup(null);
+        setAvailable([]);
+        return;
       }
+
+      let activeId;
+      if (savedId && myGroups.some((g) => String(g.id) === String(savedId))) {
+        activeId = String(savedId);
+      } else {
+        activeId = String(myGroups[0].id);
+      }
+
+      setGroupId(activeId);
+      const active = myGroups.find((g) => String(g.id) === activeId);
+      setSelectedGroup(active || null);
+      await loadAvailableForGroup(activeId);
     } catch (e) {
       setErr(e.message);
     } finally {
@@ -87,10 +73,8 @@ export default function Groups() {
   async function loadUsers() {
     setErr("");
     try {
-      const list = await api.get("/user"); // lista tuturor userilor
+      const list = await api.get("/user");
       setUsers(list);
-
-      // default: primul user diferit de mine, daca exista
       const other = list.find((u) => u.id !== userId);
       setAddUserId(other ? String(other.id) : list[0] ? String(list[0].id) : "");
     } catch (e) {
@@ -98,24 +82,28 @@ export default function Groups() {
     }
   }
 
-  // ----- Create group
   async function createGroup(e) {
     e.preventDefault();
+    if (!groupName.trim()) return;
+
     setErr("");
     setLoading(true);
-    try {
-      // trimitem si userId, daca vrei sa marchezi creatorul in backend
-      const res = await api.post("/group/create", { groupName, creatorId: userId });
-      setCreatedGroupId(res.id);
 
-      // dupa creare, il adaugam automat pe mine in grup (daca in backend nu faci deja asta)
+    try {
+      const res = await api.post("/group/create", {
+        groupName: groupName.trim(),
+        creatorId: userId,
+      });
+      setCreatedGroupId(res.id);
+      setGroupName("");
+
       try {
         await api.post("/group/addUser", {
           userId,
           groupId: res.id,
         });
       } catch {
-        // daca backend-ul deja il adauga, nu e tragedie daca pica
+        // dacă e deja membru, ignorăm
       }
 
       await loadGroups(res.id);
@@ -126,30 +114,6 @@ export default function Groups() {
     }
   }
 
-  // ----- Share FB / IG
-  async function shareOnFacebook(foodId) {
-    try {
-      const data = await getShareData(foodId);
-      window.open(data.fbShareUrl, "_blank", "noopener,noreferrer");
-    } catch (e) {
-      console.error(e);
-      alert("Nu am putut pregăti share-ul pe Facebook");
-    }
-  }
-
-  async function shareOnInstagram(foodId) {
-    try {
-      const data = await getShareData(foodId);
-      await navigator.clipboard.writeText(data.message);
-      alert("Textul a fost copiat. Postează pe Instagram și dă paste!");
-      window.open(data.instagramUrl, "_blank", "noopener,noreferrer");
-    } catch (e) {
-      console.error(e);
-      alert("Nu am putut pregăti share-ul pentru Instagram");
-    }
-  }
-
-  // ----- Add user to group
   async function addUserToGroup(e) {
     e.preventDefault();
     if (!groupId || !addUserId) return;
@@ -161,7 +125,7 @@ export default function Groups() {
         userId: Number(addUserId),
         groupId: Number(groupId),
       });
-      await loadGroups(groupId); // refresh lista de membrii
+      await loadGroups(groupId);
     } catch (e) {
       setErr(e.message);
     } finally {
@@ -169,12 +133,11 @@ export default function Groups() {
     }
   }
 
-  // ----- Load available food for current group
   async function loadAvailableForGroup(id) {
     if (!id) return;
-
     setErr("");
     setLoading(true);
+
     try {
       const list = await api.get(`/group/${id}/available-food`);
       setAvailable(list);
@@ -185,18 +148,12 @@ export default function Groups() {
     }
   }
 
-  // butonul existent va apela acum:
-  async function loadAvailable() {
-    await loadAvailableForGroup(groupId);
-  }
-
-  // ----- Claim item
   async function claimItem(itemId) {
     setErr("");
     setLoading(true);
     try {
       await api.put(`/food/${itemId}/claimItem`, { claimerId: userId });
-      await loadAvailable();
+      await loadAvailableForGroup(groupId);
     } catch (e) {
       setErr(e.message);
     } finally {
@@ -205,58 +162,52 @@ export default function Groups() {
   }
 
   async function handleSelectGroup(g) {
-    const idStr = String(g.id);
-    setGroupId(idStr);
+    const idString = String(g.id);
+    setGroupId(idString);
     setSelectedGroup(g);
     await loadAvailableForGroup(g.id);
   }
 
-  // pentru titlul "Available food in group ..."
-  const currentGroup =
-    groups.find((g) => String(g.id) === String(groupId)) || null;
-  const currentGroupName =
-    currentGroup?.groupName || currentGroup?.name || "";
+  const selectedGroupName =
+    selectedGroup?.groupName || selectedGroup?.name || "";
 
-  // ----- UI
   return (
     <div className="groups">
-      <h2>Groups</h2>
+      <h2>Grupuri</h2>
       <p>
-        Logat ca <b>{user?.username}</b> (id={userId})
+        Utilizator curent: <b>{user?.username}</b>
       </p>
 
       {err && <p className="error">{err}</p>}
-      {loading && <p>Loading...</p>}
+      {loading && <p>Se încarcă...</p>}
 
       <div className="groupsGrid">
-        {/* CREATE GROUP */}
         <div className="card">
-          <h3>Create group</h3>
+          <h3>Creează grup</h3>
           <form onSubmit={createGroup}>
             <div className="formRow">
-              <label>Group name</label>
+              <label>Nume grup</label>
               <input
                 className="input"
                 value={groupName}
+                placeholder="ex: Camin Camera 302"
                 onChange={(e) => setGroupName(e.target.value)}
               />
             </div>
-            <button className="btn">Create</button>
+            <button className="btn">Creează</button>
           </form>
 
           {createdGroupId && (
-            <p style={{ marginTop: 10 }}>
-              Grup creat!{" "}
-              <span style={{ opacity: 0.8 }}>ID grup: {createdGroupId}</span>
+            <p style={{ marginTop: 8, opacity: 0.9 }}>
+              Grup creat <span style={{ fontSize: 12 }}>ID: {createdGroupId}</span>
             </p>
           )}
 
-          {/* 🔹 LISTA GRUPURILOR MELE */}
           <div style={{ marginTop: 16 }}>
             <h4>Grupurile mele</h4>
 
             {groups.length === 0 ? (
-              <p style={{ opacity: 0.8 }}>Nu ești în niciun grup.</p>
+              <p style={{ opacity: 0.8 }}>Nu faci parte din niciun grup.</p>
             ) : (
               <ul style={{ paddingLeft: 18 }}>
                 {groups.map((g) => (
@@ -270,12 +221,13 @@ export default function Groups() {
                         padding: 0,
                         margin: 0,
                         cursor: "pointer",
-                        color: "#fff",
-                        textAlign: "left",
+                        color: "white",
                       }}
                     >
                       <b>{g.groupName || g.name}</b>{" "}
-                      — {g.Users?.length || 0} membri
+                      <span style={{ opacity: 0.8 }}>
+                        — {g.Users?.length || 0} membri
+                      </span>
                     </button>
                   </li>
                 ))}
@@ -285,114 +237,66 @@ export default function Groups() {
             {selectedGroup && (
               <div
                 style={{
-                  marginTop: 12,
-                  paddingTop: 10,
                   borderTop: "1px solid #333",
-                  fontSize: 14,
+                  paddingTop: 10,
+                  marginTop: 10,
                 }}
               >
-                <h4 style={{ marginBottom: 4 }}>
-                  Detalii grup:{" "}
-                  {selectedGroup.groupName || selectedGroup.name}
-                </h4>
-                <p
-                  style={{
-                    opacity: 0.8,
-                    fontSize: 13,
-                    marginBottom: 8,
-                  }}
-                >
-                  ID grup: <b>{selectedGroup.id}</b>
+                <h4>Detalii: {selectedGroupName}</h4>
+                <p style={{ opacity: 0.7, fontSize: 13 }}>
+                  ID grup: {selectedGroup.id}
                 </p>
 
-                {/* Membrii grupului */}
-                <div style={{ marginBottom: 8 }}>
-                  <b>Membri:</b>
-                  {selectedGroup.Users && selectedGroup.Users.length > 0 ? (
-                    <ul style={{ paddingLeft: 18, marginTop: 4 }}>
-                      {selectedGroup.Users.map((u) => (
-                        <li key={u.id}>
-                          {u.username}{" "}
-                          <span style={{ opacity: 0.8 }}>
-                            ({u.tag || "fără tag"})
-                          </span>
+                <b>Membri</b>
+                {selectedGroup.Users?.length ? (
+                  <ul style={{ paddingLeft: 18 }}>
+                    {selectedGroup.Users.map((u) => (
+                      <li key={u.id}>
+                        {u.username}
+                        {u.tag && <span className="tag-pill">{u.tag}</span>}
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p style={{ opacity: 0.8 }}>Niciun membru.</p>
+                )}
+
+                <b style={{ display: "block", marginTop: 10 }}>
+                  Mâncare rezervată
+                </b>
+                {available.filter((it) => it.claim != null).length === 0 ? (
+                  <p style={{ opacity: 0.8 }}>Nimic rezervat în acest grup.</p>
+                ) : (
+                  <ul style={{ paddingLeft: 18 }}>
+                    {available
+                      .filter((it) => it.claim != null)
+                      .map((it) => (
+                        <li key={it.id}>
+                          {it.productName} ({it.category}) — rezervat de{" "}
+                          <b>{it.claimer?.username || "necunoscut"}</b>
                         </li>
                       ))}
-                    </ul>
-                  ) : (
-                    <p style={{ opacity: 0.8, marginTop: 4 }}>
-                      Niciun membru încă.
-                    </p>
-                  )}
-                </div>
-
-                {/* Mâncare claim-uită */}
-                <div>
-                  <b>Mâncare claim-uită:</b>
-                  {available.filter((it) => it.claim != null).length === 0 ? (
-                    <p style={{ opacity: 0.8, marginTop: 4 }}>
-                      Niciun produs claim-uit în acest grup.
-                    </p>
-                  ) : (
-                    <ul style={{ paddingLeft: 18, marginTop: 4 }}>
-                      {available
-                        .filter((it) => it.claim != null)
-                        .map((it) => {
-                          const claimer = users.find(
-                            (u) => u.id === it.claim
-                          );
-                          return (
-                            <li key={it.id}>
-                              {it.productName} ({it.category}) — rezervat de{" "}
-                              <b>
-                                {claimer?.username ||
-                                  `user #${it.claim}`}
-                              </b>
-                            </li>
-                          );
-                        })}
-                    </ul>
-                  )}
-                  <p
-                    style={{
-                      fontSize: 12,
-                      opacity: 0.7,
-                      marginTop: 4,
-                    }}
-                  >
-                    (Lista se actualizează când selectezi grupul sau
-                    apeși <i>Load available food</i>.)
-                  </p>
-                </div>
+                  </ul>
+                )}
               </div>
             )}
           </div>
         </div>
 
-        {/* MANAGE GROUP */}
+        {/* Administrare grup */}
         <div className="card">
-          <h3>Manage group</h3>
-
-          {/* select grup */}
+          <h3>Administrare grup</h3>
           <div className="formRow">
-            <label>Group</label>
-
+            <label>Grup activ</label>
             <select
               className="input"
               value={groupId}
               onChange={(e) => {
                 const id = e.target.value;
-                const g = groups.find(
-                  (gr) => String(gr.id) === String(id)
-                );
-                if (g) {
-                  handleSelectGroup(g);
-                }
+                const g = groups.find((gr) => String(gr.id) === String(id));
+                if (g) handleSelectGroup(g);
               }}
             >
-              {groups.length === 0 && (
-                <option value="">Niciun grup</option>
-              )}
               {groups.map((g) => (
                 <option key={g.id} value={g.id}>
                   {g.groupName || g.name}
@@ -401,119 +305,75 @@ export default function Groups() {
             </select>
           </div>
 
-          {/* select user de adaugat */}
           <form onSubmit={addUserToGroup}>
             <div className="formRow">
-              <label>Add user to this group</label>
-
+              <label>Adaugă utilizator</label>
               <select
                 className="input"
                 value={addUserId}
                 onChange={(e) => setAddUserId(e.target.value)}
               >
-                {users.length === 0 && <option value="">No users</option>}
                 {users.map((u) => (
                   <option key={u.id} value={u.id}>
-                    {u.username} ({u.tag || "fara tag"})
+                    {u.username}
+                    {u.tag ? ` – ${u.tag}` : ""}
                   </option>
                 ))}
               </select>
             </div>
 
-            <div
-              style={{
-                display: "flex",
-                gap: 8,
-                flexWrap: "wrap",
-              }}
-            >
-              <button
-                className="btn"
-                type="submit"
-                disabled={!groupId || !addUserId}
-              >
-                Add user
-              </button>
-              <button
-                className="btn"
-                type="button"
-                onClick={() => setAddUserId(String(userId))}
-                title="Seteaza userId-ul meu"
-              >
-                Set me
-              </button>
-            </div>
+            <button className="btn" disabled={!groupId || !addUserId}>
+              Adaugă
+            </button>
           </form>
 
-          <div style={{ marginTop: 14 }}>
-            <button
-              className="btn"
-              onClick={loadAvailable}
-              disabled={!groupId}
-            >
-              Load available food
-            </button>
-          </div>
+          <button
+            className="btn"
+            style={{ marginTop: 12 }}
+            onClick={() => loadAvailableForGroup(groupId)}
+          >
+            Actualizează produse
+          </button>
         </div>
       </div>
 
-      {/* AVAILABLE FOOD LIST */}
+      {/* Alimente disponibile */}
       <div className="card" style={{ marginTop: 24 }}>
-        <h3>Available food in group {currentGroupName || "-"}</h3>
+        <h3>
+          Produse disponibile{selectedGroupName ? `: ${selectedGroupName}` : ""}
+        </h3>
 
-        {available.length === 0 ? (
-          <p>Nimic disponibil (sau nu ai dat Load).</p>
+        {available.filter((it) => it.claim == null).length === 0 ? (
+          <p style={{ opacity: 0.8 }}>Nu există produse disponibile momentan.</p>
         ) : (
           <div style={{ display: "grid", gap: 10 }}>
-            {available.map((it) => (
-              <div className="itemRow" key={it.id}>
-                <div>
-                  <div className="itemTitle">
-                    {it.productName}{" "}
-                    <span style={{ fontWeight: 400 }}>
-                      ({it.category})
-                    </span>
+            {available
+              .filter((it) => it.claim == null)
+              .map((it) => (
+                <div className="itemRow" key={it.id}>
+                  <div>
+                    <div className="itemTitle">
+                      {it.productName} <span>({it.category})</span>
+                    </div>
+                    <div className="meta">expiră la: {it.expiryDate}</div>
+                    <div className="meta">
+                      oferit de: <b>{it.proprietar?.username}</b>
+                      {it.proprietar?.tag && (
+                        <span className="tag-pill">{it.proprietar.tag}</span>
+                      )}
+                    </div>
                   </div>
-                  <div className="meta">exp: {it.expiryDate}</div>
-                  <div className="meta">
-                    owner:{" "}
-                    <b>{it.proprietar?.username || "?"}</b> — tag:{" "}
-                    <b>{it.proprietar?.tag || "?"}</b>
+
+                  <div>
+                    <button className="btn" onClick={() => claimItem(it.id)}>
+                      Rezervă
+                    </button>
                   </div>
                 </div>
-
-                <div>
-                  <button
-                    className="btn"
-                    onClick={() => claimItem(it.id)}
-                  >
-                    Claim
-                  </button>
-
-                  <button
-                    className="btn"
-                    onClick={() => shareOnFacebook(it.id)}
-                  >
-                    Share FB
-                  </button>
-                  <button
-                    className="btn"
-                    onClick={() => shareOnInstagram(it.id)}
-                  >
-                    Share IG
-                  </button>
-                </div>
-              </div>
-            ))}
+              ))}
           </div>
         )}
       </div>
-
-      <p style={{ marginTop: 14, opacity: 0.8 }}>
-        Tip: ca să apară produse aici, în Dashboard trebuie să ai un item
-        cu <b>availability=true</b> și <b>claim=null</b> (adică “Make
-        available” și să nu fie claim-uit).
-      </p>
     </div>
   );
 }

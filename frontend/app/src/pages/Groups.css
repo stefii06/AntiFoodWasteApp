@@ -4,12 +4,14 @@
   margin: 0 auto;
 }
 
+/* layout cele două carduri (creează grup / admin grup) */
 .groupsGrid {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 24px;
 }
 
+/* card generic */
 .card {
   border: 1px solid #333;
   border-radius: 12px;
@@ -17,6 +19,7 @@
   background: rgba(255, 255, 255, 0.02);
 }
 
+/* form */
 .formRow {
   margin-bottom: 10px;
 }
@@ -24,7 +27,18 @@
 .input {
   width: 100%;
   padding: 8px;
+  border-radius: 8px;
+  border: 1px solid #333;
+  background: #020617;
+  color: #e5e7eb;
+  font-size: 14px;
 }
+
+.input::placeholder {
+  color: #6b7280;
+}
+
+/* butoane */
 
 .btn {
   padding: 8px 12px;
@@ -33,29 +47,61 @@
   background: #1b1b1b;
   color: #eee;
   cursor: pointer;
+  font-size: 13px;
 }
 
 .btn:hover {
   background: #242424;
 }
 
+/* mesaje */
+
 .error {
-  color: crimson;
+  color: #fca5a5;
 }
 
+/* rând pentru produs disponibil jos */
+
 .itemRow {
-  border: 1px solid #2a2a2a;
-  border-radius: 12px;
-  padding: 12px;
+  border-radius: 14px;
+  padding: 10px 12px;
   display: flex;
+  align-items: center;
   justify-content: space-between;
   gap: 12px;
+  background: #02081f;
+  border: 1px solid #111827;
 }
 
 .itemTitle {
-  font-weight: 700;
+  font-weight: 600;
+  margin-bottom: 4px;
 }
 
 .meta {
+  font-size: 13px;
   opacity: 0.85;
+}
+
+/* etichetă (Vegetarian, iubitor de zacuscă, etc.) */
+
+.tag-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  margin-left: 6px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 500;
+  background: rgba(56, 189, 248, 0.16); /* albastru-turcoaz */
+  color: #bae6fd;
+  border: 1px solid rgba(59, 130, 246, 0.8);
+}
+
+/* responsive */
+
+@media (max-width: 900px) {
+  .groupsGrid {
+    grid-template-columns: 1fr;
+  }
 }
