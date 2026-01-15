@@ -31,20 +31,14 @@ exports.addUserToGroup = async (req, res) => {
   }
 };
 
-// Vezi alimentele dintr-un grup (ale membrilor lui)
-exports.getGroupFood = async (req, res) => {
+// Vezi alimentele relevante pentru grupuri
+// 🔹 Acum întoarcem TOATE alimentele din aplicație, nu doar ale membrilor grupului.
+// 🔹 Frontend-ul va decide:
+//    - ce e "disponibil"  -> availability === true && claim == null
+//    - ce e "rezervat în acest grup" -> claim făcut de un membru al grupului curent
+exports.getGroupFood = async (_req, res) => {
   try {
-    const { groupId } = req.params;
-
-    const members = await UserGroup.findAll({ where: { groupId } });
-    const memberIds = members.map((m) => m.userId);
-
-    if (members.length === 0) {
-      return res.status(200).json([]);
-    }
-
     const groupFood = await FoodItem.findAll({
-      where: { userId: memberIds },
       include: [
         {
           model: User,
@@ -90,7 +84,7 @@ exports.getUserGroups = async (req, res) => {
         {
           model: User,
           attributes: ["id", "username", "tag"],
-          through: { attributes: [] }, // 👈 nu mai cerem label
+          through: { attributes: [] }, // nu ne trebuie coloane din tabela de legătură
         },
       ],
     });

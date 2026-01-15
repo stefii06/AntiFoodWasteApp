@@ -27,10 +27,12 @@ export default function Groups() {
 
   const [available, setAvailable] = useState([]);
 
+  // păstrăm în localStorage id-ul ultimului grup activ
   useEffect(() => {
     if (groupId) localStorage.setItem("groupId", groupId);
   }, [groupId]);
 
+  // la schimbare user → încărcăm grupuri + useri
   useEffect(() => {
     if (!userId) return;
     const saved = localStorage.getItem("groupId") || "";
@@ -97,6 +99,7 @@ export default function Groups() {
       setCreatedGroupId(res.id);
       setGroupName("");
 
+      // adăugăm automat creatorul în grup
       try {
         await api.post("/group/addUser", {
           userId,
@@ -171,6 +174,21 @@ export default function Groups() {
   const selectedGroupName =
     selectedGroup?.groupName || selectedGroup?.name || "";
 
+  // 🔹 membri grupului curent (pentru filtrarea rezervărilor)
+  const memberIds =
+    selectedGroup?.Users?.map((u) => u.id) ?? [];
+
+  // 🔹 produse disponibile = ne-rezervate + marcate ca availability === true
+  const visibleAvailable = available.filter(
+    (it) => it.claim == null && it.availability === true
+  );
+
+  // 🔹 produse rezervate în acest grup:
+  //     claim făcut de un membru al grupului curent
+  const reservedForGroup = available.filter(
+    (it) => it.claim != null && memberIds.includes(it.claim)
+  );
+
   return (
     <div className="groups">
       <h2>Grupuri</h2>
@@ -182,6 +200,7 @@ export default function Groups() {
       {loading && <p>Se încarcă...</p>}
 
       <div className="groupsGrid">
+        {/* Creează grup */}
         <div className="card">
           <h3>Creează grup</h3>
           <form onSubmit={createGroup}>
@@ -199,7 +218,8 @@ export default function Groups() {
 
           {createdGroupId && (
             <p style={{ marginTop: 8, opacity: 0.9 }}>
-              Grup creat <span style={{ fontSize: 12 }}>ID: {createdGroupId}</span>
+              Grup creat{" "}
+              <span style={{ fontSize: 12 }}>ID: {createdGroupId}</span>
             </p>
           )}
 
@@ -264,18 +284,18 @@ export default function Groups() {
                 <b style={{ display: "block", marginTop: 10 }}>
                   Mâncare rezervată
                 </b>
-                {available.filter((it) => it.claim != null).length === 0 ? (
-                  <p style={{ opacity: 0.8 }}>Nimic rezervat în acest grup.</p>
+                {reservedForGroup.length === 0 ? (
+                  <p style={{ opacity: 0.8 }}>
+                    Nimic rezervat în acest grup.
+                  </p>
                 ) : (
                   <ul style={{ paddingLeft: 18 }}>
-                    {available
-                      .filter((it) => it.claim != null)
-                      .map((it) => (
-                        <li key={it.id}>
-                          {it.productName} ({it.category}) — rezervat de{" "}
-                          <b>{it.claimer?.username || "necunoscut"}</b>
-                        </li>
-                      ))}
+                    {reservedForGroup.map((it) => (
+                      <li key={it.id}>
+                        {it.productName} ({it.category}) — rezervat de{" "}
+                        <b>{it.claimer?.username || "necunoscut"}</b>
+                      </li>
+                    ))}
                   </ul>
                 )}
               </div>
@@ -343,34 +363,32 @@ export default function Groups() {
           Produse disponibile{selectedGroupName ? `: ${selectedGroupName}` : ""}
         </h3>
 
-        {available.filter((it) => it.claim == null).length === 0 ? (
+        {visibleAvailable.length === 0 ? (
           <p style={{ opacity: 0.8 }}>Nu există produse disponibile momentan.</p>
         ) : (
           <div style={{ display: "grid", gap: 10 }}>
-            {available
-              .filter((it) => it.claim == null)
-              .map((it) => (
-                <div className="itemRow" key={it.id}>
-                  <div>
-                    <div className="itemTitle">
-                      {it.productName} <span>({it.category})</span>
-                    </div>
-                    <div className="meta">expiră la: {it.expiryDate}</div>
-                    <div className="meta">
-                      oferit de: <b>{it.proprietar?.username}</b>
-                      {it.proprietar?.tag && (
-                        <span className="tag-pill">{it.proprietar.tag}</span>
-                      )}
-                    </div>
+            {visibleAvailable.map((it) => (
+              <div className="itemRow" key={it.id}>
+                <div>
+                  <div className="itemTitle">
+                    {it.productName} <span>({it.category})</span>
                   </div>
-
-                  <div>
-                    <button className="btn" onClick={() => claimItem(it.id)}>
-                      Rezervă
-                    </button>
+                  <div className="meta">expiră la: {it.expiryDate}</div>
+                  <div className="meta">
+                    oferit de: <b>{it.proprietar?.username}</b>
+                    {it.proprietar?.tag && (
+                      <span className="tag-pill">{it.proprietar.tag}</span>
+                    )}
                   </div>
                 </div>
-              ))}
+
+                <div>
+                  <button className="btn" onClick={() => claimItem(it.id)}>
+                    Rezervă
+                  </button>
+                </div>
+              </div>
+            ))}
           </div>
         )}
       </div>
